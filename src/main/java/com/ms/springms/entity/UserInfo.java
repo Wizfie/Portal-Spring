@@ -27,5 +27,6 @@
         private String password;
         private String role;
         private LocalDate createdAt;
+        private String emailPassword;
 
     }

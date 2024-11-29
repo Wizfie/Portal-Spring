@@ -1,5 +1,6 @@
 package com.ms.springms.service.user;
 
+import com.ms.springms.model.user.AdminEmailDTO;
 import com.ms.springms.utils.Exceptions.DuplicateEntryException;
 import com.ms.springms.entity.UserInfo;
 import com.ms.springms.model.user.UpdatePasswordRequest;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -36,6 +38,10 @@ public class UserService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<UserInfo> user = Optional.ofNullable(userRepository.findByUsername(username));
         return user.map(MyUserDetails::new).orElseThrow(() -> new UsernameNotFoundException("Username Not Found" + username));
+    }
+
+    public List<AdminEmailDTO> getAdminEmail(){
+        return userRepository.findEmailAdmin();
     }
 
     public String register(UserInfo userInfo) {
@@ -84,21 +90,40 @@ public class UserService implements UserDetailsService {
         if (userOptional.isPresent()) {
             UserInfo existingUser = userOptional.get();
 
-            existingUser.setUsername(userInfo.getUsername());
-            existingUser.setPassword(passwordEncoder.encode(userInfo.getPassword()));
-            existingUser.setEmail(userInfo.getEmail());
-            existingUser.setUsername(userInfo.getUsername());
-            existingUser.setNip(userInfo.getNip());
-            existingUser.setRole(userInfo.getRole());
-            // Lanjutkan dengan memperbarui atribut lainnya sesuai kebutuhan
+            // Update email jika ada perubahan
+            if (userInfo.getEmail() != null) {
+                existingUser.setEmail(userInfo.getEmail());
+            }
 
+            // Update nip jika ada perubahan
+            if (userInfo.getNip() != null) {
+                existingUser.setNip(userInfo.getNip());
+            }
+
+            // Update password hanya jika ada perubahan password
+            if (userInfo.getPassword() != null && !userInfo.getPassword().isEmpty()) {
+                existingUser.setPassword(passwordEncoder.encode(userInfo.getPassword()));
+            }
+
+            // Update username hanya jika ada perubahan username
+            if (userInfo.getUsername() != null) {
+                existingUser.setUsername(userInfo.getUsername());
+            }
+
+            // Update role hanya jika ada perubahan role
+            if (userInfo.getRole() != null) {
+                existingUser.setRole(userInfo.getRole());
+            }
+
+            // Simpan perubahan ke database
             userRepository.save(existingUser);
-
             return new Response("User updated successfully");
         } else {
             return new Response("User not found with id: " + id);
         }
     }
+
+
     public Response removeUser(Long id) {
         Optional<UserInfo> userOptional = userRepository.findById(id);
         if (userOptional.isPresent()) {
@@ -131,6 +156,10 @@ public class UserService implements UserDetailsService {
             throw new UsernameNotFoundException("User not found with username: " + username);
         }
     }
+
+
+
+
 
 
 

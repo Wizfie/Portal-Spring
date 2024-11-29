@@ -1,6 +1,7 @@
 package com.ms.springms.controller.user;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.ms.springms.model.user.AdminEmailDTO;
 import com.ms.springms.utils.Exceptions.DuplicateEntryException;
 import com.ms.springms.entity.UserInfo;
 import com.ms.springms.model.auth.AuthRequest;
@@ -177,4 +178,17 @@ public class UserController {
     }
 
 
+    @GetMapping("/admin")
+    public ResponseEntity<List<AdminEmailDTO>> getAdminEmails() {
+        try {
+            List<AdminEmailDTO> adminEmails = userService.getAdminEmail();
+            if (adminEmails.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(adminEmails);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null);
+        }
+    }
 }
+

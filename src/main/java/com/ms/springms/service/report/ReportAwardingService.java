@@ -11,6 +11,7 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcBorders;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTcPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.STBorder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -40,10 +41,12 @@ public class ReportAwardingService {
     @Autowired
     private ReportLogRepository reportLogRepository;
 
+    @Value("${TEMPLATE_PATH}")
+    private String templatePath;
+
 
     public List<ReportLog> getAllReport () {
-        List<ReportLog> reportLogList = reportLogRepository.findAll();
-        return reportLogList;
+        return reportLogRepository.findAll();
     }
 
     public ByteArrayInputStream generateAwardingReport(Integer year, String noUrut, String bulan) throws IOException {
@@ -82,17 +85,21 @@ public class ReportAwardingService {
             currentDateTitle = getCurrentFormattedDate();
         }
 
+        // Load the Word template from the dynamic path
+        File templateFile = new File(templatePath + "/Report-Awarding.docx");
 
+        if (!templateFile.exists()) {
+            throw new FileNotFoundException("Template file not found at path: " + templateFile.getPath());
+        }
 
-        // Load the Word template
-        InputStream inputStream = new ClassPathResource("templates/Report-Awarding.docx").getInputStream();
+        InputStream inputStream = new FileInputStream(templateFile);
         XWPFDocument document = new XWPFDocument(inputStream);
 
         // Placeholder dan penggantinya
         Map<String, String> placeholders = new HashMap<>();
         placeholders.put("[current_year_title]", String.valueOf(currentYear));
         placeholders.put("[no_surat_title]", noUrut + "/LOG/JPL/ITG/" + bulan + "/" + currentYear);
-        placeholders.put("[current_date_title]",   currentDateTitle);
+        placeholders.put("[current_date_title]", currentDateTitle);
         placeholders.put("[penjurian_lapangan_date]", getPenjurianLapanganDate(steps));
         placeholders.put("[penjurian_presentasi_date]", getPenjurianPresentasiDate(steps));
 
@@ -113,7 +120,6 @@ public class ReportAwardingService {
 
         return new ByteArrayInputStream(outputStream.toByteArray());
     }
-
     private String getPenjurianLapanganDate(List<Steps> steps) {
         return getDateRangeForStep(steps, "Penjurian Lapangan");
     }

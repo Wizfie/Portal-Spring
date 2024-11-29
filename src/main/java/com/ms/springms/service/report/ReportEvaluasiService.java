@@ -25,12 +25,11 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +59,10 @@ public class ReportEvaluasiService {
     private TeamRepository teamRepository;
     @Autowired
     private UserRepository userRepository;
+
+    @Value("${TEMPLATE_PATH}")
+    private String templatePath;
+
 
     public byte[] reportEvaluasiLapangan(Long userId, Long eventId, Long year) throws IOException {
         logger.info("Generating lapangan evaluation report for userId: {}, eventId: {}, year: {}", userId, eventId, year);
@@ -102,12 +105,13 @@ public class ReportEvaluasiService {
                         )
                 ));
 
-        // Load template Excel
+
+        // Load template Excel menggunakan path dinamis
         Workbook workbook;
-        try (InputStream templateStream = new ClassPathResource("templates/evaluation_report.xlsx").getInputStream()) {
+        try (InputStream templateStream = new FileInputStream(new File(templatePath + "/evaluation_report.xlsx"))) {
             workbook = new XSSFWorkbook(templateStream);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Template file not found or invalid: " + templatePath + "/evaluation_report.xlsx", e);
         }
 
         // Mengakses sheet dan memodifikasi template
@@ -166,18 +170,19 @@ public class ReportEvaluasiService {
                         )
                 ));
 
-        // Load template Excel
+
+        // Load template Excel menggunakan path dinamis
         Workbook workbook;
-        try (InputStream templateStream = new ClassPathResource("templates/evaluation_report.xlsx").getInputStream()) {
+        try (InputStream templateStream = new FileInputStream(new File(templatePath + "/evaluation_report.xlsx"))) {
             workbook = new XSSFWorkbook(templateStream);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Template file not found or invalid: " + templatePath + "/evaluation_report.xlsx", e);
         }
 
         // Mengakses sheet dan memodifikasi template
         Sheet sheet = workbook.getSheet("Evaluation Report");
         if (sheet == null) {
-            throw new RuntimeException("Sheet 'Presentation Evaluation Report' not found in template.");
+            throw new RuntimeException("Sheet 'Evaluation Report' not found in template.");
         }
 
         generatePresentasiReport(sheet, workbook, user, teams, questions, teamScores);
@@ -199,15 +204,16 @@ public class ReportEvaluasiService {
         // Fetch evaluations based on department, jury, and year
         List<HasilEvaluasiYelyelDTO> evaluations = detailEvaluasiYelyelRepository.findByDeptIdAndJuriIdAndYear(deptId, juriId, year);
 
-        // Load template Excel
+
+        // Load template Excel menggunakan path dinamis
         Workbook workbook;
-        try (InputStream templateStream = new ClassPathResource("templates/evaluation_report.xlsx").getInputStream()) {
+        try (InputStream templateStream = new FileInputStream(new File(templatePath + "/evaluation_report.xlsx"))) {
             workbook = new XSSFWorkbook(templateStream);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Template file not found or invalid: " + templatePath + "/evaluation_report.xlsx", e);
         }
 
-        // Access sheet and modify template
+        // Mengakses sheet dan memodifikasi template
         Sheet sheet = workbook.getSheet("Evaluation Report");
         if (sheet == null) {
             throw new RuntimeException("Sheet 'Evaluation Report' not found in template.");
