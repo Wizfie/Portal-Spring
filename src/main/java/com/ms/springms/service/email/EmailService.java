@@ -32,11 +32,6 @@ public class EmailService {
     @Value("${MAIL_PORT}")
     private int mailPort;
 
-//    @Value("${MAIL_USERNAME}")
-//    private String mailUsername;
-//
-//    @Value("${MAIL_PASSWORD}")
-//    private String mailPassword;
 
     private JavaMailSender javaMailSender;
 
@@ -60,6 +55,8 @@ public class EmailService {
             // Set mailUsername dan mailPassword
             this.mailUsername = adminEmail.getEmail();
             this.mailPassword = adminEmail.getEmailPassword();
+            System.out.println(mailUsername);
+            System.out.println(mailPassword);
         }
 
         if (mailUsername == null || mailPassword == null) {

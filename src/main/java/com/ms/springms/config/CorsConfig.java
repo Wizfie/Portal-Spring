@@ -14,9 +14,11 @@ public class CorsConfig implements WebMvcConfigurer {
     @Value("${HOSTNAME}")
     private String hostnames; // Multiple hostnames from properties
 
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         List<String> allowedOrigins = Arrays.asList(hostnames.split(","));
+        System.out.println(allowedOrigins);
 
         registry.addMapping("/**")
                 .allowedOrigins(allowedOrigins.toArray(new String[0]))
