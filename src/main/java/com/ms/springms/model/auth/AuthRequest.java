@@ -13,4 +13,5 @@ public class AuthRequest {
     private String nip;
     private String email;
     private String role;
+    private String department;
 }

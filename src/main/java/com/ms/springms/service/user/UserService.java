@@ -1,6 +1,6 @@
 package com.ms.springms.service.user;
 
-import com.ms.springms.model.user.AdminEmailDTO;
+import com.ms.springms.model.user.UserEmailDTO;
 import com.ms.springms.utils.Exceptions.DuplicateEntryException;
 import com.ms.springms.entity.UserInfo;
 import com.ms.springms.model.user.UpdatePasswordRequest;
@@ -40,8 +40,8 @@ public class UserService implements UserDetailsService {
         return user.map(MyUserDetails::new).orElseThrow(() -> new UsernameNotFoundException("Username Not Found" + username));
     }
 
-    public List<AdminEmailDTO> getAdminEmail(){
-        return userRepository.findEmailAdmin();
+    public List<UserEmailDTO> getEmailsByRoleAndDepartment(String role, String department) {
+        return userRepository.findEmailsByRoleAndDepartment(role, department);
     }
 
     public String register(UserInfo userInfo) {
@@ -91,8 +91,9 @@ public class UserService implements UserDetailsService {
             UserInfo existingUser = userOptional.get();
 
             // Update email jika ada perubahan
-            if (userInfo.getEmail() != null) {
-                existingUser.setEmail(userInfo.getEmail());
+            // Update username hanya jika ada perubahan username
+            if (userInfo.getUsername() != null) {
+                existingUser.setUsername(userInfo.getUsername());
             }
 
             // Update nip jika ada perubahan
@@ -100,19 +101,27 @@ public class UserService implements UserDetailsService {
                 existingUser.setNip(userInfo.getNip());
             }
 
+            if (userInfo.getEmail() != null) {
+                existingUser.setEmail(userInfo.getEmail());
+            }
             // Update password hanya jika ada perubahan password
             if (userInfo.getPassword() != null && !userInfo.getPassword().isEmpty()) {
                 existingUser.setPassword(passwordEncoder.encode(userInfo.getPassword()));
             }
 
-            // Update username hanya jika ada perubahan username
-            if (userInfo.getUsername() != null) {
-                existingUser.setUsername(userInfo.getUsername());
-            }
 
             // Update role hanya jika ada perubahan role
             if (userInfo.getRole() != null) {
                 existingUser.setRole(userInfo.getRole());
+            }
+
+            if (userInfo.getEmailPassword() != null) {
+                existingUser.setEmailPassword(userInfo.getEmailPassword());
+            }
+
+
+            if (userInfo.getDepartment() != null) {
+                existingUser.setDepartment(userInfo.getDepartment());
             }
 
             // Simpan perubahan ke database

@@ -4,7 +4,7 @@ import com.ms.springms.entity.Event;
 import com.ms.springms.entity.Steps;
 import com.ms.springms.model.email.MailRequest;
 import com.ms.springms.model.email.MailResponse;
-import com.ms.springms.model.user.AdminEmailDTO;
+import com.ms.springms.model.user.UserEmailDTO;
 import com.ms.springms.repository.event.StepRepository;
 import com.ms.springms.repository.user.UserRepository;
 import jakarta.annotation.PostConstruct;
@@ -47,10 +47,10 @@ public class EmailService {
 
     @PostConstruct
     public void initJavaMailSender() {
-        List<AdminEmailDTO> adminDTOs = userRepository.findEmailAdmin();
+        List<UserEmailDTO> adminDTOs = userRepository.findEmailsByRoleAndDepartment("ADMIN", null);
 
         if (!adminDTOs.isEmpty()) {
-            AdminEmailDTO adminEmail = adminDTOs.get(0);
+            UserEmailDTO adminEmail = adminDTOs.get(0);
 
             // Set mailUsername dan mailPassword
             this.mailUsername = adminEmail.getEmail();
@@ -142,31 +142,43 @@ public class EmailService {
 
 
 
-    public void sendNotificationEmail (Event event, Steps step){
-            List<String> userEmails = userRepository.findEmailsByRoleUser();
-            String[] emailArray = userEmails.toArray(new String[0]);
+    public void sendNotificationEmail(Event event, Steps step) {
+        List<UserEmailDTO> userEmails = userRepository.findEmailsByRoleAndDepartment("USER", null);
+        List<UserEmailDTO> ccEmails = userRepository.findEmailsByRoleAndDepartment("LEADER", null);
 
-            MailRequest mailRequest = new MailRequest();
-            mailRequest.setTo(emailArray);
-            mailRequest.setSubject("Reminder Step Event QCC & SS");
-            mailRequest.setName("Admin");
+        // Mengonversi List<UserEmailDTO>
+        String[] emailArray = userEmails.stream()
+                .map(UserEmailDTO::getEmail)
+                .toArray(String[]::new);
 
-            String emailContent = "<html><body>"
-                    + "<h3>Dear All,</h3>"
-                    + "<p>Kami ingin mengingatkan rekan-rekan jadwal kita selanjutnya di event <b>Continuous Improvement (QCC & Suggestion System)</b> sebagai berikut.</p>"
-                    + "<p><b>Detail Event:</b><br>"
-                    + "- Event: " + event.getEventName() + "<br>"
-                    + "- Tanggal: " + step.getStartDate() + " - " + step.getEndDate() + "</p>"
-                    + "<p>Jangan lewatkan kesempatan untuk berpartisipasi aktif dan berkontribusi dalam upaya peningkatan berkelanjutan ini. Kami harap Anda siap untuk berbagi ide dan terlibat dalam sesi-sesi menarik yang telah kami persiapkan.</p>"
-                    + "<p>Jika Anda memiliki pertanyaan atau memerlukan informasi lebih lanjut, jangan ragu untuk menghubungi kami di <a href='mailto:" + mailUsername + "'> Kontak Komite</a>.</p>"
-                    + "<p>Salam hangat,<br>Komite Continuous Improvement Logistic</p>"
-                    + "</body></html>";
+        String[] ccArray = ccEmails.stream().map(UserEmailDTO::getEmail).toArray(String[]::new);
 
-            mailRequest.setText(emailContent);
+        // Persiapkan request untuk pengiriman email
+        MailRequest mailRequest = new MailRequest();
+        mailRequest.setTo(emailArray);  // Set daftar email sebagai penerima
+        mailRequest.setSubject("Reminder Step Event QCC & SS");
+        mailRequest.setCc(ccArray);
+        mailRequest.setName("Admin");
 
-            System.out.println("Sending email to: " + String.join(", ", emailArray));
-            sendEmail(mailRequest);
-        }
+        // Buat konten email
+        String emailContent = "<html><body>"
+                + "<h3>Dear All,</h3>"
+                + "<p>Kami ingin mengingatkan rekan-rekan jadwal kita selanjutnya di event <b>Continuous Improvement (QCC & Suggestion System)</b> sebagai berikut.</p>"
+                + "<p><b>Detail Event:</b><br>"
+                + "- Event: " + event.getEventName() + "<br>"
+                + "- Tanggal: " + step.getStartDate() + " - " + step.getEndDate() + "</p>"
+                + "<p>Jangan lewatkan kesempatan untuk berpartisipasi aktif dan berkontribusi dalam upaya peningkatan berkelanjutan ini. Kami harap Anda siap untuk berbagi ide dan terlibat dalam sesi-sesi menarik yang telah kami persiapkan.</p>"
+                + "<p>Jika Anda memiliki pertanyaan atau memerlukan informasi lebih lanjut, jangan ragu untuk menghubungi kami di <a href='mailto:" + mailUsername + "'> Kontak Komite</a>.</p>"
+                + "<p>Salam hangat,<br>Komite Continuous Improvement Logistic</p>"
+                + "</body></html>";
 
+        mailRequest.setText(emailContent);
 
+        // Debug: Menampilkan email yang akan dikirim
+        System.out.println("Sending email to: " + String.join(", ", emailArray));
+
+        // Kirim email
+        sendEmail(mailRequest);
     }
+
+}

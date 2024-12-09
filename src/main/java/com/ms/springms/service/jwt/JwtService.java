@@ -2,7 +2,6 @@ package com.ms.springms.service.jwt;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ms.springms.entity.UserInfo;
-import com.ms.springms.model.user.CurrentUserDTO;
 import com.ms.springms.repository.user.UserRepository;
 import com.ms.springms.service.user.UserService;
 import io.jsonwebtoken.Claims;
@@ -59,6 +58,7 @@ public class JwtService {
         claims.put("username", userInfo.getUsername());
         claims.put("email", userInfo.getEmail());
         claims.put("role", userInfo.getRole());
+        claims.put("department", userInfo.getDepartment());
 
         long expirationTimeInMinutes = 120; // Masa aktif token dalam menit
         Date expirationDate = new Date(System.currentTimeMillis() + (expirationTimeInMinutes * 60 * 1000));
@@ -72,20 +72,14 @@ public class JwtService {
 
 
 
-        CurrentUserDTO currentUserDTO = new CurrentUserDTO(
-                userInfo.getUsername(),
-                userInfo.getNip(),
-                userInfo.getEmail(),
-                userInfo.getRole()
-        );
-//        tokenBlackList.add(token);
         JSONObject jsonResponse = new JSONObject();
 
         JSONObject userJson = new JSONObject();
-        userJson.put("id", userInfo.getId()); // Tambahkan informasi pengguna dalam respons
-        userJson.put("username", userInfo.getUsername()); // Tambahkan informasi pengguna dalam respons
-        userJson.put("email", userInfo.getEmail()); // Tambahkan informasi pengguna dalam respons
-        userJson.put("role", userInfo.getRole()); // Tambahkan informasi pengguna dalam respons
+        userJson.put("id", userInfo.getId());
+        userJson.put("username", userInfo.getUsername());
+        userJson.put("email", userInfo.getEmail());
+        userJson.put("role", userInfo.getRole());
+        userJson.put("department", userInfo.getDepartment());
 
         jsonResponse.put("user", userJson);
         jsonResponse.put("token", token);
