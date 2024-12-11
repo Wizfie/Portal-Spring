@@ -23,7 +23,7 @@ public interface UserRepository  extends JpaRepository<UserInfo,Long> {
             "FROM UserInfo u " +
             "WHERE u.role = :role " +
             "AND (:department IS NULL OR u.department = :department) " +
-            "AND u.role = :role")
+            "AND u.active = true")
     List<UserEmailDTO> findEmailsByRoleAndDepartment(@Param("role") String role, @Param("department") String department);
 
 

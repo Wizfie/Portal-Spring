@@ -53,6 +53,7 @@ public class UserService implements UserDetailsService {
             if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) {
                 userInfo.setCreatedAt(LocalDate.now());
                 userInfo.setPassword(passwordEncoder.encode(password));
+                userInfo.setActive(true);
                 userRepository.save(userInfo);
                 return "User Added Successfully";
             } else {
@@ -90,8 +91,6 @@ public class UserService implements UserDetailsService {
         if (userOptional.isPresent()) {
             UserInfo existingUser = userOptional.get();
 
-            // Update email jika ada perubahan
-            // Update username hanya jika ada perubahan username
             if (userInfo.getUsername() != null) {
                 existingUser.setUsername(userInfo.getUsername());
             }
@@ -123,6 +122,12 @@ public class UserService implements UserDetailsService {
             if (userInfo.getDepartment() != null) {
                 existingUser.setDepartment(userInfo.getDepartment());
             }
+
+            if (userInfo.isActive() != existingUser.isActive()) {
+                existingUser.setActive(userInfo.isActive());
+            }
+
+
 
             // Simpan perubahan ke database
             userRepository.save(existingUser);

@@ -30,4 +30,6 @@
         private String emailPassword;
         private String department;
 
+        @Column(nullable = false)
+        private boolean active;
     }

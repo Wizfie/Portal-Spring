@@ -143,42 +143,69 @@ public class EmailService {
 
 
     public void sendNotificationEmail(Event event, Steps step) {
+        // Ambil email berdasarkan role
         List<UserEmailDTO> userEmails = userRepository.findEmailsByRoleAndDepartment("USER", null);
         List<UserEmailDTO> ccEmails = userRepository.findEmailsByRoleAndDepartment("LEADER", null);
 
-        // Mengonversi List<UserEmailDTO>
+        // Mengonversi List<UserEmailDTO> menjadi array email
         String[] emailArray = userEmails.stream()
                 .map(UserEmailDTO::getEmail)
                 .toArray(String[]::new);
 
         String[] ccArray = ccEmails.stream().map(UserEmailDTO::getEmail).toArray(String[]::new);
 
-        // Persiapkan request untuk pengiriman email
+        // Persiapkan MailRequest
         MailRequest mailRequest = new MailRequest();
         mailRequest.setTo(emailArray);  // Set daftar email sebagai penerima
+        mailRequest.setCc(ccArray);     // Set daftar email sebagai CC
         mailRequest.setSubject("Reminder Step Event QCC & SS");
-        mailRequest.setCc(ccArray);
         mailRequest.setName("Admin");
 
-        // Buat konten email
-        String emailContent = "<html><body>"
-                + "<h3>Dear All,</h3>"
-                + "<p>Kami ingin mengingatkan rekan-rekan jadwal kita selanjutnya di event <b>Continuous Improvement (QCC & Suggestion System)</b> sebagai berikut.</p>"
-                + "<p><b>Detail Event:</b><br>"
-                + "- Event: " + event.getEventName() + "<br>"
-                + "- Tanggal: " + step.getStartDate() + " - " + step.getEndDate() + "</p>"
-                + "<p>Jangan lewatkan kesempatan untuk berpartisipasi aktif dan berkontribusi dalam upaya peningkatan berkelanjutan ini. Kami harap Anda siap untuk berbagi ide dan terlibat dalam sesi-sesi menarik yang telah kami persiapkan.</p>"
-                + "<p>Jika Anda memiliki pertanyaan atau memerlukan informasi lebih lanjut, jangan ragu untuk menghubungi kami di <a href='mailto:" + mailUsername + "'> Kontak Komite</a>.</p>"
-                + "<p>Salam hangat,<br>Komite Continuous Improvement Logistic</p>"
-                + "</body></html>";
+        // Cek apakah stepName mengandung kata "penjurian"
+        if (step.getStepName().toLowerCase().contains("penjurian")) {
+            // Konten email khusus untuk penjurian
+            String penjurianEmailContent = "<html><body>"
+                    + "<h3>Dear All Peserta " + event.getEventName() + ",</h3>"
+                    + "<p>Ada kabar penting nih! <b>" + step.getStepName() + "</b> Continuous Improvement Logistic Division "
+                    + LocalDate.now().getYear() + " sudah di depan mata.</p>"
+                    + "<p>Ini waktunya unjuk gigi kalau tim kalian adalah yang terbaik! ✨</p>"
+                    + "<b>Catat tanggalnya!</b>"
+                    + "<p>Hari, tanggal : " + "<b>" + step.getStartDate() + "</b>" +  " s/d " + "<b>" + step.getEndDate() + " </b>" + "</p>"
+                    + " (Jadwal lengkap menyusul ya!)</p>"
+                    + "<p>Pastikan kalian semua sudah siap ya! </p>"
+                    + "<p>jangan lupa untuk bawa semangat juang yang tinggi!</p>"
+                    + "<p>Kita tunggu aksi keren kalian semua!</p>"
+                    + "<p>Best Regards,<br>Komite Continuous Improvement Logistic</p>"
+                    + "</body></html>";
 
-        mailRequest.setText(emailContent);
+            // Set konten email untuk penjurian
+            mailRequest.setText(penjurianEmailContent);
+        } else {
+            // Konten email reguler untuk event biasa
+            String regularEmailContent = "<html><body>"
+                    + "<h3>Dear All,</h3>"
+                    + "<p>Kami ingin mengingatkan rekan-rekan jadwal kita selanjutnya di event <b>Continuous Improvement (QCC & Suggestion System)</b> sebagai berikut.</p>"
+                    + "<p><b>Detail Event:</b><br>"
+                    + "- Event: " + event.getEventName() + "<br>"
+                    + "- Event Steps: " + step.getStepName() + "<br>"
+                    + "- Tanggal: " + step.getStartDate() + " s/d " + step.getEndDate() + "</p>"
+                    + "<p>Jangan lewatkan kesempatan untuk berpartisipasi aktif dan berkontribusi dalam upaya peningkatan berkelanjutan ini. Kami harap Anda siap untuk berbagi ide dan terlibat dalam sesi-sesi menarik yang telah kami persiapkan.</p>"
+                    + "<p>Jika Anda memiliki pertanyaan atau memerlukan informasi lebih lanjut, jangan ragu untuk menghubungi kami di <a href='mailto:" + mailUsername + "'>Kontak Komite</a>.</p>"
+                    + "<p>Salam hangat,<br>Komite Continuous Improvement Logistic</p>"
+                    + "</body></html>";
 
-        // Debug: Menampilkan email yang akan dikirim
-        System.out.println("Sending email to: " + String.join(", ", emailArray));
+            // Set konten email reguler untuk peserta dan leader
+            mailRequest.setText(regularEmailContent);
+        }
 
-        // Kirim email
+        // Kirim email sesuai kondisi yang telah ditentukan
         sendEmail(mailRequest);
+
+        // Debug log
+        System.out.println("Email sent to users and leaders.");
+        if (step.getStepName().toLowerCase().contains("penjurian")) {
+            System.out.println("Email sent with special content for judging step.");
+        }
     }
 
 }
