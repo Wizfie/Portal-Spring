@@ -47,41 +47,58 @@ public class EmailService {
 
     @PostConstruct
     public void initJavaMailSender() {
+        loadEmailCredentials();
+    }
+
+    // Method to load credentials
+    public void loadEmailCredentials() {
         List<UserEmailDTO> adminDTOs = userRepository.findEmailsByRoleAndDepartment("ADMIN", null);
 
         if (!adminDTOs.isEmpty()) {
             UserEmailDTO adminEmail = adminDTOs.get(0);
-
-            // Set mailUsername dan mailPassword
             this.mailUsername = adminEmail.getEmail();
             this.mailPassword = adminEmail.getEmailPassword();
-            System.out.println(mailUsername);
-            System.out.println(mailPassword);
         }
 
-        if (mailUsername == null || mailPassword == null) {
-            throw new IllegalStateException("Email username or password is not set.");
+        // Check if the credentials are null or empty
+        if (isEmpty(mailUsername) || isEmpty(mailPassword)) {
+            System.out.println("Email credentials not found in DB or are empty. Using default values.");
+            // Set default email credentials
+            this.mailUsername = "default-email@example.com";
+            this.mailPassword = "default-password";
         }
 
-        // Konfigurasi JavaMailSender
+
+        // Configure JavaMailSender
+        configureMailSender();
+    }
+
+    // Configure JavaMailSender
+    private void configureMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
         mailSender.setHost(mailHost);
         mailSender.setPort(mailPort);
-        mailSender.setUsername(mailUsername);  // Set username dari database
-        mailSender.setPassword(mailPassword);  // Set password dari database
+        mailSender.setUsername(mailUsername);
+        mailSender.setPassword(mailPassword);
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
 
-        this.javaMailSender = mailSender;  // Menyimpan objek mailSender yang sudah terkonfigurasi
+        this.javaMailSender = mailSender;
+    }
+
+    // Utility method to check if a string is null or empty
+    private boolean isEmpty(String str) {
+        return str == null || str.trim().isEmpty();
     }
 
 
     public MailResponse sendEmail (MailRequest request){
+        loadEmailCredentials();  // Refresh credentials before sending email
 
 
-            MailResponse response = new MailResponse();
+        MailResponse response = new MailResponse();
             MimeMessage message = javaMailSender.createMimeMessage();
             try {
                 MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
