@@ -256,7 +256,6 @@ public class YelyelQccService {
     public PageResponse<List<EvaluationYelyelDTO>> evaluationList(String search, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size); // Halaman dimulai dari 1
 
-
         // Panggil repository untuk mendapatkan hasil pencarian
         Page<EvaluationYelyelDTO> resultPage = detailEvaluasiYelyelRepository.findBySearchAndYear(search, pageable);
 

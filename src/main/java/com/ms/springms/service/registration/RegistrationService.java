@@ -256,6 +256,13 @@ public class RegistrationService {
                 Double avgScoreLapangan = (Double) scoreData[2];
                 Double avgScorePresentasi = (Double) scoreData[3];
 
+                if (avgScoreLapangan == null) {
+                    avgScoreLapangan = 0.0;
+                }
+                if (avgScorePresentasi == null) {
+                    avgScorePresentasi = 0.0;
+                }
+
                 // Hitung weighted final score
                 double finalScore = (avgScoreLapangan * 0.8) + (avgScorePresentasi * 0.2);
                 registrationDTO.setFinalScore(finalScore);
@@ -266,8 +273,10 @@ public class RegistrationService {
 
         // Lakukan sorting berdasarkan finalScore
         List<RegistrationDTO> sortedRegistrations = allRegistrations.stream()
-                .sorted(Comparator.comparing(RegistrationDTO::getFinalScore).reversed())
+                .filter(registration -> registration.getFinalScore() != null)  // Menyaring yang null
+                .sorted(Comparator.comparing(RegistrationDTO::getFinalScore).reversed())  // Sorting berdasarkan finalScore
                 .collect(Collectors.toList());
+
 
         // Tetapkan rank global untuk setiap event
         for (RegistrationDTO registration : sortedRegistrations) {

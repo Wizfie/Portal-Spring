@@ -45,9 +45,6 @@ public interface DetailEvaluasiYelyelRepository  extends JpaRepository<DetailEva
 
     List<DetailEvaluasiYelyel> findByDeptId(Long deptId);
 
-    // Tambahkan method baru untuk mencari berdasarkan deptId, juriId, dan tahun dari createdAt
-//    @Query("SELECT d FROM DetailEvaluasiYelyel d WHERE d.deptId = :deptId AND d.juriId = :juriId AND YEAR(d.createdAt) = :year")
-//    List<DetailEvaluasiYelyel> findByDeptIdAndJuriIdAndYear(@Param("deptId") Long deptId, @Param("juriId") Long juriId, @Param("year") int year);
 
     @Query("SELECT new com.ms.springms.model.penjurian.yelyel.HasilEvaluasiYelyelDTO(" +
             "d.id, d.deptId, d.deptName, d.juriId, juri.username, p.id, p.pertanyaan, d.score, d.createdAt) " +
@@ -67,7 +64,6 @@ public interface DetailEvaluasiYelyelRepository  extends JpaRepository<DetailEva
             "WHERE (:search IS NULL OR d.deptName LIKE %:search% OR u.username LIKE %:search%) " +
             "GROUP BY d.deptId, d.deptName, d.juriId, d.createdAt")
     Page<EvaluationYelyelDTO> findBySearchAndYear(@Param("search") String search,
-
                                                   Pageable pageable);
 
 
